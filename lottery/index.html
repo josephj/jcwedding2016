@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>抽獎頁面 | #JCWedding2016</title>
+<meta name="author" content="josephj">
+<meta name="created" content="2015-12-13">
+<meta name="apple-mobile-web-app-capable" content="no" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1" />
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<style type="text/css">
+body {
+    background: #eee;
+}
+.tile {
+    background-color: #000;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: relative;
+    width: 360px;
+    height: 360px;
+}
+.tile .empty {
+    color: #fff;
+    display: block;
+    padding: 150px auto;
+    text-align: center;
+}
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+.belt {
+    color: #fff;
+    padding: 5px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+.user,
+.msg {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+.user {
+    top: 0;
+}
+.msg {
+    bottom: 0;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="tile">
+                <p class="empty">請點選下方「隨機挑選」按鈕</p>
+            </div>
+        </div>
+        <div class="row">
+            <button class="btn btn-success">隨機挑選</button>
+            <a href="javascript:location.reload()" class="btn btn-link">重新再來</a>
+        </div>
+    </div>
+    <ul class="selected"></ul>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script>
+    (function () {
+        var API_URL = 'https://my.stackla.com/api/filters/15983/content?stack=josephj&api_key=Bh8WJl4JTBYADbGqDDrB4wR1hj1RVUH2',
+            CONVERTOR_URL = 'http://json2jsonp.com/',
+            CALLBACK = 'cbfunc',
+            url = CONVERTOR_URL + '?url=' + encodeURIComponent(API_URL) + '&callback=' + CALLBACK,
+            tiles = [];
+            tilesDisplayed = [];
+
+        window.cbfunc = function (data) {
+            tiles = data.data;
+            _.map(tiles, function (tile) {
+                return tile;
+            });
+        };
+
+        $.ajax({
+            url: url,
+            jsonp: 'cbfunc',
+            dataType: 'jsonp'
+        });
+
+        $('.btn-success').on('click', function (e) {
+            var tile =  _.sample(tiles),
+                index = _.findIndex(tiles, tile),
+                $selected = $('.selected'),
+                $tile = $('.tile');
+
+            var imagePath = 'https://web-assets.stackla.com/app.stackla.com/media/images/';
+            if ((tile.source || tile.source === 'stackla' || tile.source === 'sta_feed') && !tile.avatar) {
+                tile.avatar = imagePath + 'stackla-logo-80x80.20141013.png';
+                tile.show_stackla_logo = true;
+            }
+
+            tile.message = tile.message || tile.title;
+            tile.name = tile.name || tile.user;
+
+            $tile.html([
+                '<div class="belt">',
+                '    <div class="user">',
+                '        <img class="user-avatar" src="' + tile.avatar + '"/> ' + tile.name,
+                '    </div>',
+                '    <div class="msg">' + tile.message + '</div>',
+                '</div>'
+            ].join(''));
+            $tile.css('backgroundImage', 'url(' + tile.image + ')');
+
+            $selected.append([
+                '<li>',
+                '    <img class="user-avatar" src="' + tile.avatar + '"/> ' + tile.name,
+                '</li>'
+            ].join(''));
+
+            console.log(tile);
+
+            tiles.splice(index, 1);
+        });
+    }());
+    </script>
+</body>
+</html>
