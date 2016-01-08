@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="no" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1" />
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="//my.stackla.com/media/components/stackla-uikit/dist/uikit.css?1452218961?1452218961"/>
 <style type="text/css">
 body {
     background: #eee;
@@ -55,47 +56,75 @@ body {
 .msg {
     bottom: 0;
 }
+.empty {
+    padding-top: 160px;
+}
+li {
+    margin-bottom: 10px;
+}
 </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row">
+    <div class="container" style="padding: 20px; margin: 0 auto; width: 400px;">
+        <h1 class="st-title st-title-h1">拍照片抽電影票小活動</h1>
+        <p>用電腦隨機抽出幸運兒，你必須要在會場才能得到喔！</p>
+        <div class="st-row" style="margin-bottom: 10px;">
             <div class="tile">
                 <p class="empty">請點選下方「隨機挑選」按鈕</p>
             </div>
         </div>
-        <div class="row">
-            <button class="btn btn-success">隨機挑選</button>
+        <div class="st-row" style="text-align: center; margin-bottom: 20px;">
+            <button id="random-button" class="st-btn st-btn-success st-btn-solid" disabled>讀取資料中...</button>
             <a href="javascript:location.reload()" class="btn btn-link">重新再來</a>
         </div>
+        <ul class="selected"></ul>
     </div>
-    <ul class="selected"></ul>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="//my.stackla.com/media/components/stackla-uikit/dist/uikit.js?1452218961"></script>
     <script>
     (function () {
         var API_URL = 'https://my.stackla.com/api/filters/15983/content?stack=josephj&api_key=Bh8WJl4JTBYADbGqDDrB4wR1hj1RVUH2',
             CONVERTOR_URL = 'http://json2jsonp.com/',
             CALLBACK = 'cbfunc',
             url = CONVERTOR_URL + '?url=' + encodeURIComponent(API_URL) + '&callback=' + CALLBACK,
+            page = 1,
             tiles = [];
             tilesDisplayed = [];
 
         window.cbfunc = function (data) {
-            tiles = data.data;
-            _.map(tiles, function (tile) {
-                return tile;
+            var data = data.data;
+            if (window.console) {
+                console.log('page ' + page);
+            }
+            _.each(data, function (tile) {
+                tiles.push(tile);
             });
+
+            if (data.length < 30) {
+                $('#random-button').removeAttr('disabled');
+                $('#random-button').html('隨機挑選');
+                if (window.console) {
+                    console.log(tiles.length);
+                }
+            } else {
+                makeRequest();
+                page += 1;
+            }
         };
 
-        $.ajax({
-            url: url,
-            jsonp: 'cbfunc',
-            dataType: 'jsonp'
-        });
+        function makeRequest() {
+            $.ajax({
+                url: url + '&page=' + page,
+                jsonp: 'cbfunc',
+                dataType: 'jsonp'
+            });
+        }
 
-        $('.btn-success').on('click', function (e) {
+        makeRequest();
+
+        $('#random-button').on('click', function (e) {
             var tile =  _.sample(tiles),
                 index = _.findIndex(tiles, tile),
                 $selected = $('.selected'),
@@ -125,8 +154,6 @@ body {
                 '    <img class="user-avatar" src="' + tile.avatar + '"/> ' + tile.name,
                 '</li>'
             ].join(''));
-
-            console.log(tile);
 
             tiles.splice(index, 1);
         });
