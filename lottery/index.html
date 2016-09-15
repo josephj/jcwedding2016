@@ -85,13 +85,16 @@ li {
     <script src="//my.stackla.com/media/components/stackla-uikit/dist/uikit.js?1452218961"></script>
     <script>
     (function () {
-        var API_URL = 'https://my.stackla.com/api/filters/15983/content?stack=josephj&api_key=Bh8WJl4JTBYADbGqDDrB4wR1hj1RVUH2',
+        var filter_id = location.hash.split('#')[1] || 15983,
+            API_URL = 'https://my.stackla.com/api/filters/' + filter_id + '/content?stack=josephj&api_key=Bh8WJl4JTBYADbGqDDrB4wR1hj1RVUH2&limit=100',
             CONVERTOR_URL = 'http://json2jsonp.com/',
             CALLBACK = 'cbfunc',
-            url = CONVERTOR_URL + '?url=' + encodeURIComponent(API_URL) + '&callback=' + CALLBACK,
+            url,
             page = 1,
             tiles = [];
             tilesDisplayed = [];
+
+        console.log('Fetching filter: ' + filter_id);
 
         window.cbfunc = function (data) {
             var data = data.data;
@@ -102,7 +105,7 @@ li {
                 tiles.push(tile);
             });
 
-            if (data.length < 30) {
+            if (data.length <= 0) {
                 $('#random-button').removeAttr('disabled');
                 $('#random-button').html('隨機挑選');
                 if (window.console) {
@@ -114,9 +117,14 @@ li {
             }
         };
 
+        function genUrl(page) {
+          return CONVERTOR_URL + '?url=' + encodeURIComponent(API_URL + '&page=' + page) + '&callback=' + CALLBACK
+        }
+
         function makeRequest() {
+            url = genUrl(page);
             $.ajax({
-                url: url + '&page=' + page,
+                url: url,
                 jsonp: 'cbfunc',
                 dataType: 'jsonp'
             });
